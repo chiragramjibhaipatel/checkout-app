@@ -1,19 +1,43 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
-  useExtensionApi,
   render,
-  Banner,
-  useTranslate,
+  TextField,
+  useApplyMetafieldsChange, useMetafield
 } from '@shopify/checkout-ui-extensions-react';
 
 render('Checkout::Dynamic::Render', () => <App />);
 
 function App() {
-  const {extensionPoint} = useExtensionApi();
-  const translate = useTranslate();
+  const METAFIELD_NAMESPACE = 'RESIDENT_ID_APP';
+  const METAFIELD_KEY = 'resident_id';
+  const [error, setError] = useState(false);
+  const updateMetafield = useApplyMetafieldsChange();
+
+  const residentIdState = useMetafield({
+    namespace: METAFIELD_NAMESPACE,
+    key: METAFIELD_KEY,
+  });
+
+  const handleFieldChange = (value) => {
+    updateMetafield(
+      {
+        type: 'updateMetafield',
+        namespace: METAFIELD_NAMESPACE,
+        key: METAFIELD_KEY,
+        valueType: 'string',
+        value: value
+      }
+    );
+  };
+
+
+
   return (
-    <Banner title="postcode-validation">
-      {translate('welcome', {extensionPoint})}
-    </Banner>
+    <TextField
+      label='Resident ID'
+      value={residentIdState?.value}
+      error={error? 'Please provide a valid ID': false}
+      onChange={handleFieldChange}
+    />
   );
 }
