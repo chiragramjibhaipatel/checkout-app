@@ -13,6 +13,11 @@ extension_points = [
 # namespace = "my-namespace"
 # key = "my-key-2"
 
+ [capabilities]
+# network_access = true
+block_progress = true
+
+
 # Read more on extension settings at https://shopify.dev/api/checkout-extensions/checkout/configuration
 # [settings]
 #   [[settings.fields]]

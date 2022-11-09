@@ -1,11 +1,7 @@
 import React, {useState} from 'react';
-import {
-  render,
-  TextField,
-  useApplyMetafieldsChange, useMetafield
-} from '@shopify/checkout-ui-extensions-react';
+import {render, TextField, useApplyMetafieldsChange, useMetafield, useBuyerJourneyIntercept} from '@shopify/checkout-ui-extensions-react';
 
-render('Checkout::Dynamic::Render', () => <App />);
+render('Checkout::Dynamic::Render', () => <App/>);
 
 function App() {
   const METAFIELD_NAMESPACE = 'RESIDENT_ID_APP';
@@ -18,7 +14,17 @@ function App() {
     key: METAFIELD_KEY,
   });
 
+  const validateResidentId = (value) => {
+    return value.length === 9;
+  }
+
   const handleFieldChange = (value) => {
+    if(error) {
+      let validId = validateResidentId(value);
+      if(validId) {
+        setError(false);
+      }
+    }
     updateMetafield(
       {
         type: 'updateMetafield',
@@ -30,13 +36,33 @@ function App() {
     );
   };
 
+  useBuyerJourneyIntercept(() => {
+    if(!validateResidentId(residentIdState.value)) {
+      return {
+        behavior: 'block',
+        reason: 'Form is not valid.',
+        // if a partner tries block checkout, then `perform()` does not get called and nothing happens
+        // acts like `behavior: allow`
+        perform: () => showValidationUI()
+      }
+    } else {
+      setError(false);
+      return {
+        behavior: 'allow',
+      }
+    }
+  });
 
+  const showValidationUI = () => {
+    console.log('validation UI');
+    setError(true);
+  }
 
   return (
     <TextField
       label='Resident ID'
       value={residentIdState?.value}
-      error={error? 'Please provide a valid ID': false}
+      error={error ? 'Please provide a valid ID' : false}
       onChange={handleFieldChange}
     />
   );
